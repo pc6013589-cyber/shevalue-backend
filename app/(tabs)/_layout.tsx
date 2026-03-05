@@ -1,33 +1,68 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { View } from "react-native";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+
+        tabBarStyle: {
+          backgroundColor: "#000",
+          borderTopWidth: 0,
+          height: 70,
+          paddingBottom: 10,
+          elevation: 0,
+        },
+
+        tabBarActiveTintColor: "#A4161A",   // sexy oxblood
+        tabBarInactiveTintColor: "#555",
+
+        tabBarLabelStyle: {
+          fontSize: 12,
+          marginTop: 4,
+          fontWeight: "600",
+        },
+
+        tabBarItemStyle: {
+          paddingVertical: 6,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Analyzer",
+          tabBarIcon: ({ color, focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? "rgba(164,22,26,0.15)" : "transparent",
+                padding: 8,
+                borderRadius: 20,
+              }}
+            >
+              <Ionicons name="analytics" size={22} color={color} />
+            </View>
+          ),
         }}
       />
+
       <Tabs.Screen
-        name="explore"
+        name="therapist"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Therapist",
+          tabBarIcon: ({ color, focused }) => (
+            <View
+              style={{
+                backgroundColor: focused ? "rgba(164,22,26,0.15)" : "transparent",
+                padding: 8,
+                borderRadius: 20,
+              }}
+            >
+              <Ionicons name="chatbubbles" size={22} color={color} />
+            </View>
+          ),
         }}
       />
     </Tabs>
