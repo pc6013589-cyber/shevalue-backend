@@ -67,6 +67,22 @@ export default function AnalyzerScreen() {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        console.log("Analyzer backend error:", data);
+        showToast(data.error || "Analyzer failed");
+        return;
+      }
+
+      if (
+        data.feminine_score === undefined ||
+        !data.signal ||
+        !data.suggested_reply
+      ) {
+        console.log("Analyzer invalid response:", data);
+        showToast("Analyzer returned incomplete data");
+        return;
+      }
+
       setScore(data.feminine_score);
       setSignal(data.signal);
       setReply(data.suggested_reply);
@@ -78,6 +94,7 @@ export default function AnalyzerScreen() {
       await copyReply(data.suggested_reply);
     } catch (error) {
       console.log("Analyzer error:", error);
+      showToast("Network or server error");
     }
   };
 

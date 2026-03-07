@@ -15,6 +15,8 @@ import {
 } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import * as ImagePicker from "expo-image-picker";
+import * as Haptics from "expo-haptics";
+import { ToastAndroid } from "react-native";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
@@ -34,6 +36,12 @@ export default function Therapist() {
   const flatListRef = useRef<FlatList>(null);
 
   const currentConversation = conversations.find(c => c.id === currentId);
+
+  const showToast = (text: string) => {
+    if (Platform.OS === "android") {
+      ToastAndroid.show(text, ToastAndroid.SHORT);
+    }
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -95,15 +103,54 @@ export default function Therapist() {
         )
       );
 
-      await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: imageBase64,
-          relationship,
-          history: updatedMessages,
-        }),
-      });
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: imageBase64,
+            relationship,
+            history: updatedMessages,
+          }),
+        });
+
+        const data = await res.json();
+
+        const aiMessage = {
+          id: Date.now().toString(),
+          role: "assistant",
+          content:
+            res.ok && data.reply
+              ? data.reply
+              : data.error || "No reply received from server.",
+        };
+
+        setConversations(prev =>
+          prev.map(c =>
+            c.id === conv.id
+              ? { ...c, messages: [...updatedMessages, aiMessage] }
+              : c
+          )
+        );
+      } catch (err) {
+        console.log("Image upload error:", err);
+
+        const aiMessage = {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: "Network or server error. Please try again.",
+        };
+
+        setConversations(prev =>
+          prev.map(c =>
+            c.id === conv.id
+              ? { ...c, messages: [...updatedMessages, aiMessage] }
+              : c
+          )
+        );
+
+        showToast("Network or server error");
+      }
     }
   };
 
@@ -155,10 +202,31 @@ export default function Therapist() {
 
       const data = await res.json();
 
+      if (!res.ok) {
+        console.log("Therapist backend error:", data);
+
+        const aiMessage = {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: data.error || "Something went wrong. Please try again.",
+        };
+
+        setConversations(prev =>
+          prev.map(c =>
+            c.id === conv.id
+              ? { ...c, messages: [...updatedMessages, aiMessage] }
+              : c
+          )
+        );
+
+        showToast(data.error || "Something went wrong");
+        return;
+      }
+
       const aiMessage = {
         id: Date.now().toString(),
         role: "assistant",
-        content: data.reply,
+        content: data.reply || "No reply received from server.",
       };
 
       setConversations(prev =>
@@ -169,7 +237,23 @@ export default function Therapist() {
         )
       );
     } catch (err) {
-      console.log(err);
+      console.log("Therapist error:", err);
+
+      const aiMessage = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: "Network or server error. Please try again.",
+      };
+
+      setConversations(prev =>
+        prev.map(c =>
+          c.id === conv.id
+            ? { ...c, messages: [...updatedMessages, aiMessage] }
+            : c
+        )
+      );
+
+      showToast("Network or server error");
     }
   };
 
