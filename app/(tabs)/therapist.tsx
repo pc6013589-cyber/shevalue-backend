@@ -12,14 +12,13 @@ import {
   Platform,
   TouchableWithoutFeedback,
   SafeAreaView,
-  Keyboard,
 } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import * as ImagePicker from "expo-image-picker";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
-const API_URL = "http://172.20.10.3:5000/chat";
+const API_URL = "https://shevalue-backend-api-production.up.railway.app/chat";
 
 export default function Therapist() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -63,7 +62,8 @@ export default function Therapist() {
   };
 
   const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -178,6 +178,7 @@ export default function Therapist() {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
       >
         {/* HEADER */}
         <View style={styles.header}>
@@ -235,7 +236,7 @@ export default function Therapist() {
           />
         </View>
 
-        {/* CHATGPT STYLE INPUT */}
+        {/* CHAT INPUT */}
         <View style={styles.inputWrapper}>
           <TouchableOpacity onPress={pickImage}>
             <Text style={styles.attachText}>＋</Text>
@@ -254,13 +255,16 @@ export default function Therapist() {
             }
           />
 
-          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={sendMessage}
+          >
             <Text style={styles.sendText}>↑</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
 
-      {/* DRAWER (UNCHANGED) */}
+      {/* DRAWER */}
       {drawerOpen && (
         <TouchableWithoutFeedback onPress={toggleDrawer}>
           <View style={styles.overlay} />

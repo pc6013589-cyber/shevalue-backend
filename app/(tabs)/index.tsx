@@ -45,15 +45,14 @@ export default function AnalyzerScreen() {
     showToast("Reply copied");
   };
 
-  // ✅ REAL AI ANALYZER (Backend Connected)
   const analyzeMessage = async () => {
-    if (!message) return;
+    if (!message.trim()) return;
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     try {
       const response = await fetch(
-        "http://YOUR_LOCAL_IP:3000/api/analyze",
+        "https://shevalue-backend-api-production.up.railway.app/analyze",
         {
           method: "POST",
           headers: {
@@ -148,7 +147,7 @@ export default function AnalyzerScreen() {
 
             <View style={styles.actionsRow}>
               <TouchableOpacity onPress={() => copyReply(reply)}>
-                <Text style={styles.copy}>Copy Again</Text>
+                <Text style={styles.copy}>Copy</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -156,6 +155,7 @@ export default function AnalyzerScreen() {
                   setMessage("");
                   setScore(null);
                   setReply("");
+                  setSignal("");
                   setNeedsTherapist(false);
                 }}
               >
