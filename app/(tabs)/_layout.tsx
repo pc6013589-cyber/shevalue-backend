@@ -7,7 +7,6 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-
         tabBarStyle: {
           backgroundColor: "#000",
           borderTopWidth: 0,
@@ -15,16 +14,13 @@ export default function TabLayout() {
           paddingBottom: 10,
           elevation: 0,
         },
-
-        tabBarActiveTintColor: "#A4161A",   // sexy oxblood
+        tabBarActiveTintColor: "#A4161A",
         tabBarInactiveTintColor: "#555",
-
         tabBarLabelStyle: {
           fontSize: 12,
           marginTop: 4,
           fontWeight: "600",
         },
-
         tabBarItemStyle: {
           paddingVertical: 6,
         },
@@ -33,11 +29,20 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="analyzer"
+        options={{
           title: "Analyzer",
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
-                backgroundColor: focused ? "rgba(164,22,26,0.15)" : "transparent",
+                backgroundColor: focused
+                  ? "rgba(164,22,26,0.15)"
+                  : "transparent",
                 padding: 8,
                 borderRadius: 20,
               }}
@@ -55,7 +60,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
-                backgroundColor: focused ? "rgba(164,22,26,0.15)" : "transparent",
+                backgroundColor: focused
+                  ? "rgba(164,22,26,0.15)"
+                  : "transparent",
                 padding: 8,
                 borderRadius: 20,
               }}

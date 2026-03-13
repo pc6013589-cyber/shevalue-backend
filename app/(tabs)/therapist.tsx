@@ -12,15 +12,65 @@ import {
   Platform,
   TouchableWithoutFeedback,
   SafeAreaView,
+  ToastAndroid,
+  StatusBar,
+  Image,
 } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import * as ImagePicker from "expo-image-picker";
-import * as Haptics from "expo-haptics";
-import { ToastAndroid } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
-const API_URL = "https://shevalue-backend-api-production.up.railway.app/chat";
+const API_URL = "http://172.20.10.3:5001/chat";
+const STORAGE_KEY = "shevalue_conversations";
+
+function TypingDots() {
+  const dot1 = useRef(new Animated.Value(0.3)).current;
+  const dot2 = useRef(new Animated.Value(0.3)).current;
+  const dot3 = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const makeLoop = (dot: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(dot, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot, {
+            toValue: 0.3,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+    const a1 = makeLoop(dot1, 0);
+    const a2 = makeLoop(dot2, 150);
+    const a3 = makeLoop(dot3, 300);
+
+    a1.start();
+    a2.start();
+    a3.start();
+
+    return () => {
+      a1.stop();
+      a2.stop();
+      a3.stop();
+    };
+  }, [dot1, dot2, dot3]);
+
+  return (
+    <View style={styles.typingDotsRow}>
+      <Animated.View style={[styles.typingDot, { opacity: dot1 }]} />
+      <Animated.View style={[styles.typingDot, { opacity: dot2 }]} />
+      <Animated.View style={[styles.typingDot, { opacity: dot3 }]} />
+    </View>
+  );
+}
 
 export default function Therapist() {
   const tabBarHeight = useBottomTabBarHeight();
@@ -31,11 +81,15 @@ export default function Therapist() {
   const [relationship, setRelationship] = useState("Single");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inputHeight, setInputHeight] = useState(44);
+  const [typing, setTyping] = useState(false);
+
+  const [pendingImageBase64, setPendingImageBase64] = useState<string | null>(null);
+  const [pendingImageUri, setPendingImageUri] = useState<string | null>(null);
 
   const drawerX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const flatListRef = useRef<FlatList>(null);
 
-  const currentConversation = conversations.find(c => c.id === currentId);
+  const currentConversation = conversations.find((c) => c.id === currentId);
 
   const showToast = (text: string) => {
     if (Platform.OS === "android") {
@@ -43,11 +97,52 @@ export default function Therapist() {
     }
   };
 
+  /* LOAD PREVIOUS CHATS WHEN APP OPENS */
+  useEffect(() => {
+    const loadSavedConversations = async () => {
+      try {
+        const saved = await AsyncStorage.getItem(STORAGE_KEY);
+
+        if (saved) {
+          const parsed = JSON.parse(saved);
+
+          if (Array.isArray(parsed)) {
+            setConversations(parsed);
+
+            if (parsed.length > 0) {
+              setCurrentId(parsed[0].id);
+            }
+          }
+        }
+      } catch (err) {
+        console.log("Load conversations error:", err);
+      }
+    };
+
+    loadSavedConversations();
+  }, []);
+
+  /* SAVE CHATS AUTOMATICALLY */
+  useEffect(() => {
+    const saveConversations = async () => {
+      try {
+        await AsyncStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(conversations)
+        );
+      } catch (err) {
+        console.log("Save conversations error:", err);
+      }
+    };
+
+    saveConversations();
+  }, [conversations]);
+
   useEffect(() => {
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  }, [currentConversation?.messages]);
+  }, [currentConversation?.messages, typing]);
 
   const toggleDrawer = () => {
     Animated.timing(drawerX, {
@@ -64,15 +159,22 @@ export default function Therapist() {
       title: "New Chat",
       messages: [],
     };
-    setConversations(prev => [newConv, ...prev]);
+    setConversations((prev) => [newConv, ...prev]);
     setCurrentId(newConv.id);
+    setTyping(false);
+    setInput("");
+    setPendingImageBase64(null);
+    setPendingImageUri(null);
     if (drawerOpen) toggleDrawer();
   };
 
   const pickImage = async () => {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      showToast("Photo permission is needed");
+      return;
+    }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -81,104 +183,54 @@ export default function Therapist() {
     });
 
     if (!result.canceled) {
-      const imageBase64 = result.assets[0].base64;
-
-      let conv = currentConversation;
-      if (!conv) {
-        startNewConversation();
-        return;
-      }
-
-      const userMsg = {
-        id: Date.now().toString(),
-        role: "user",
-        content: "[Image Uploaded]",
-      };
-
-      const updatedMessages = [...conv.messages, userMsg];
-
-      setConversations(prev =>
-        prev.map(c =>
-          c.id === conv.id ? { ...c, messages: updatedMessages } : c
-        )
-      );
-
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: imageBase64,
-            relationship,
-            history: updatedMessages,
-          }),
-        });
-
-        const data = await res.json();
-
-        const aiMessage = {
-          id: Date.now().toString(),
-          role: "assistant",
-          content:
-            res.ok && data.reply
-              ? data.reply
-              : data.error || "No reply received from server.",
-        };
-
-        setConversations(prev =>
-          prev.map(c =>
-            c.id === conv.id
-              ? { ...c, messages: [...updatedMessages, aiMessage] }
-              : c
-          )
-        );
-      } catch (err) {
-        console.log("Image upload error:", err);
-
-        const aiMessage = {
-          id: Date.now().toString(),
-          role: "assistant",
-          content: "Network or server error. Please try again.",
-        };
-
-        setConversations(prev =>
-          prev.map(c =>
-            c.id === conv.id
-              ? { ...c, messages: [...updatedMessages, aiMessage] }
-              : c
-          )
-        );
-
-        showToast("Network or server error");
-      }
+      const asset = result.assets[0];
+      setPendingImageBase64(asset.base64 || null);
+      setPendingImageUri(asset.uri || null);
+      showToast("Image added");
     }
   };
 
+  const removePendingImage = () => {
+    setPendingImageBase64(null);
+    setPendingImageUri(null);
+  };
+
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() && !pendingImageBase64) return;
 
     let conv = currentConversation;
     if (!conv) {
-      startNewConversation();
-      return;
+      const newConv = {
+        id: Date.now().toString(),
+        title: "New Chat",
+        messages: [],
+      };
+      setConversations((prev) => [newConv, ...prev]);
+      setCurrentId(newConv.id);
+      conv = newConv;
     }
+
+    const currentInput = input.trim();
+    const currentImageBase64 = pendingImageBase64;
+    const currentImageUri = pendingImageUri;
 
     const userMsg = {
       id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: currentInput || "[Image Uploaded]",
+      imageUri: currentImageUri || null,
     };
 
     const updatedMessages = [...conv.messages, userMsg];
 
-    setConversations(prev =>
-      prev.map(c =>
-        c.id === conv.id
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === conv!.id
           ? {
               ...c,
               title:
-                conv.messages.length === 0
-                  ? input.slice(0, 30)
+                conv!.messages.length === 0
+                  ? (currentInput || "Image Chat").slice(0, 30)
                   : c.title,
               messages: updatedMessages,
             }
@@ -188,13 +240,17 @@ export default function Therapist() {
 
     setInput("");
     setInputHeight(44);
+    setPendingImageBase64(null);
+    setPendingImageUri(null);
+    setTyping(true);
 
     try {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: userMsg.content,
+          message: currentInput,
+          image: currentImageBase64,
           relationship,
           history: updatedMessages,
         }),
@@ -211,9 +267,11 @@ export default function Therapist() {
           content: data.error || "Something went wrong. Please try again.",
         };
 
-        setConversations(prev =>
-          prev.map(c =>
-            c.id === conv.id
+        setTyping(false);
+
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === conv!.id
               ? { ...c, messages: [...updatedMessages, aiMessage] }
               : c
           )
@@ -229,9 +287,11 @@ export default function Therapist() {
         content: data.reply || "No reply received from server.",
       };
 
-      setConversations(prev =>
-        prev.map(c =>
-          c.id === conv.id
+      setTyping(false);
+
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === conv!.id
             ? { ...c, messages: [...updatedMessages, aiMessage] }
             : c
         )
@@ -245,9 +305,11 @@ export default function Therapist() {
         content: "Network or server error. Please try again.",
       };
 
-      setConversations(prev =>
-        prev.map(c =>
-          c.id === conv.id
+      setTyping(false);
+
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === conv!.id
             ? { ...c, messages: [...updatedMessages, aiMessage] }
             : c
         )
@@ -257,14 +319,42 @@ export default function Therapist() {
     }
   };
 
+  /* OPTIONAL CLEAR CHAT HISTORY BUTTON */
+  const clearAllChats = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      setConversations([]);
+      setCurrentId(null);
+      setTyping(false);
+      setInput("");
+      setPendingImageBase64(null);
+      setPendingImageUri(null);
+      showToast("All chats cleared");
+    } catch (err) {
+      console.log("Clear chats error:", err);
+    }
+  };
+
+  const messagesToRender =
+    typing && currentConversation
+      ? [
+          ...currentConversation.messages,
+          {
+            id: "typing-indicator",
+            role: "assistant",
+            isTyping: true,
+          },
+        ]
+      : currentConversation?.messages || [];
+
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={0}
       >
-        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={toggleDrawer}>
             <Text style={styles.menu}>☰</Text>
@@ -275,9 +365,8 @@ export default function Therapist() {
           </TouchableOpacity>
         </View>
 
-        {/* RELATIONSHIP */}
         <View style={styles.relationshipRow}>
-          {["Married", "Dating", "Single Mother", "Single"].map(r => {
+          {["Married", "Dating", "Single Mother", "Single"].map((r) => {
             const isActive = relationship === r;
             return (
               <TouchableOpacity
@@ -298,13 +387,15 @@ export default function Therapist() {
           })}
         </View>
 
-        {/* CHAT AREA */}
         <View style={{ flex: 1 }}>
           <FlatList
             ref={flatListRef}
-            data={currentConversation?.messages || []}
-            keyExtractor={item => item.id}
-            contentContainerStyle={{ padding: 15 }}
+            data={messagesToRender}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{
+              padding: 15,
+              paddingBottom: tabBarHeight + 20,
+            }}
             renderItem={({ item }) => (
               <View
                 style={[
@@ -312,43 +403,72 @@ export default function Therapist() {
                   item.role === "user"
                     ? styles.userBubble
                     : styles.aiBubble,
+                  item.isTyping && styles.typingBubble,
                 ]}
               >
-                <Text style={styles.messageText}>{item.content}</Text>
+                {item.isTyping ? (
+                  <TypingDots />
+                ) : (
+                  <>
+                    {item.imageUri ? (
+                      <Image
+                        source={{ uri: item.imageUri }}
+                        style={styles.chatImage}
+                      />
+                    ) : null}
+                    <Text style={styles.messageText}>{item.content}</Text>
+                  </>
+                )}
               </View>
             )}
           />
         </View>
 
-        {/* CHAT INPUT */}
         <View style={styles.inputWrapper}>
-          <TouchableOpacity onPress={pickImage}>
-            <Text style={styles.attachText}>＋</Text>
-          </TouchableOpacity>
+          {pendingImageUri ? (
+            <View style={styles.previewWrap}>
+              <Image
+                source={{ uri: pendingImageUri }}
+                style={styles.previewImage}
+              />
+              <TouchableOpacity
+                style={styles.removePreviewButton}
+                onPress={removePendingImage}
+              >
+                <Text style={styles.removePreviewText}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
-          <TextInput
-            style={[styles.input, { height: Math.max(44, inputHeight) }]}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Message SheValue Therapist..."
-            placeholderTextColor="#777"
-            multiline
-            textAlignVertical="top"
-            onContentSizeChange={e =>
-              setInputHeight(e.nativeEvent.contentSize.height)
-            }
-          />
+          <View style={styles.bottomInputRow}>
+            <TouchableOpacity onPress={pickImage} style={styles.attachButton}>
+              <Text style={styles.attachText}>＋</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={sendMessage}
-          >
-            <Text style={styles.sendText}>↑</Text>
-          </TouchableOpacity>
+            <TextInput
+              style={[styles.input, { height: Math.max(44, inputHeight) }]}
+              value={input}
+              onChangeText={setInput}
+              placeholder="Message SheValue Therapist..."
+              placeholderTextColor="#777"
+              multiline
+              textAlignVertical="top"
+              onContentSizeChange={(e) =>
+                setInputHeight(e.nativeEvent.contentSize.height)
+              }
+              keyboardAppearance="dark"
+            />
+
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={sendMessage}
+            >
+              <Text style={styles.sendText}>↑</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
 
-      {/* DRAWER */}
       {drawerOpen && (
         <TouchableWithoutFeedback onPress={toggleDrawer}>
           <View style={styles.overlay} />
@@ -369,11 +489,18 @@ export default function Therapist() {
           </Text>
         </TouchableOpacity>
 
-        {conversations.map(conv => (
+        <TouchableOpacity onPress={clearAllChats}>
+          <Text style={{ color: "#777", paddingVertical: 12 }}>
+            Clear All Chats
+          </Text>
+        </TouchableOpacity>
+
+        {conversations.map((conv) => (
           <TouchableOpacity
             key={conv.id}
             onPress={() => {
               setCurrentId(conv.id);
+              setTyping(false);
               toggleDrawer();
             }}
           >
@@ -442,19 +569,96 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
 
-  messageText: { color: "#fff", fontSize: 15 },
-
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    backgroundColor: "#2a2a2a",
-    borderRadius: 30,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    margin: 15,
+  typingBubble: {
+    opacity: 0.9,
+    minWidth: 70,
   },
 
-  attachText: { color: "#888", fontSize: 22 },
+  typingDotsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    minHeight: 20,
+  },
+
+  typingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#ddd",
+  },
+
+  messageText: {
+    color: "#fff",
+    fontSize: 15,
+  },
+
+  chatImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 14,
+    marginBottom: 10,
+    resizeMode: "cover",
+  },
+
+  inputWrapper: {
+    backgroundColor: "#2a2a2a",
+    borderRadius: 30,
+    margin: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+
+  previewWrap: {
+    width: 110,
+    height: 110,
+    borderRadius: 18,
+    overflow: "hidden",
+    marginBottom: 10,
+    position: "relative",
+  },
+
+  previewImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+
+  removePreviewButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  removePreviewText: {
+    color: "#fff",
+    fontSize: 20,
+    lineHeight: 20,
+    marginTop: -1,
+  },
+
+  bottomInputRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+  },
+
+  attachButton: {
+    justifyContent: "flex-end",
+    paddingBottom: 4,
+    marginRight: 8,
+  },
+
+  attachText: {
+    color: "#888",
+    fontSize: 24,
+  },
 
   input: {
     flex: 1,
