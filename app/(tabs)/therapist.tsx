@@ -22,7 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
-const API_URL = "http://172.20.10.3:5001/chat";
+const API_URL = "https://shevalue-backend-production-1519.up.railway.app/chat"; 
 const STORAGE_KEY = "shevalue_conversations";
 
 function TypingDots() {
