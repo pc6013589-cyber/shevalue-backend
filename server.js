@@ -157,11 +157,14 @@ app.post("/ocr", upload.single("image"), async (req, res) => {
 
     return res.json({ text });
   } catch (err) {
-    console.error("OCR error:", err);
-    res.status(500).json({ error: "OCR failed" });
-  }
-});
+    const PORT = process.env.PORT || 3001;
 
-app.listen(3001, "0.0.0.0", () => {
-  console.log("SheValue backend running on http://0.0.0.0:3001");
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 SheValue backend running on port ${PORT}`);
 });
+    
+  
+
+
+
+  
