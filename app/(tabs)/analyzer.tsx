@@ -94,9 +94,8 @@ export default function AnalyzerScreen() {
     setLoading(true);
 
     try {
-      const API_URL =
-        "https://shevalue-backend-production-1519.up.railway.app/analyze";
-
+      const ANALYZE_URL = "https://shevalue-backend.vercel.app/analyze";
+        
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -109,7 +108,19 @@ export default function AnalyzerScreen() {
         }),
       });
 
-      const data = await response.json();
+      const rawText = await response.text();
+console.log("RAW RESPONSE:", rawText);
+
+let data;
+
+try {
+  data = JSON.parse(rawText);
+} catch (error) {
+  console.log("NOT JSON RESPONSE:", rawText);
+  showToast("Server returned invalid response");
+  setLoading(false);
+  return;
+}
 
       if (!response.ok) {
         console.log("Analyzer backend error:", data);
