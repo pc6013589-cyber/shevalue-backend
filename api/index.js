@@ -1,14 +1,16 @@
 import OpenAI from "openai";
 
-export default async function handler(req, res) {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-  // ✅ HEALTH CHECK
+export default async function handler(req, res) {
+  const path = req.url || "";
+
   if (req.method === "GET") {
     return res.status(200).json({
       status: "SheValue backend running 🚀",
+      openaiConfigured: !!process.env.OPENAI_API_KEY,
     });
   }
 
@@ -17,10 +19,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, image, relationshipStatus, relationship } = req.body;
+    const { message, image, relationshipStatus, relationship } = req.body || {};
 
-    // 🔥 ANALYZER ROUTE
-    if (req.url.includes("/api/analyze")) {
+    if (path.endsWith("/analyze") || path.includes("/analyze")) {
       const response = await openai.responses.create({
         model: "gpt-4o-mini",
         input: [
@@ -41,13 +42,10 @@ export default async function handler(req, res) {
         ],
       });
 
-      return res.status(200).json(
-        JSON.parse(response.output_text)
-      );
+      return res.status(200).json(JSON.parse(response.output_text));
     }
 
-    // 🔥 THERAPIST ROUTE
-    if (req.url.includes("/api/chat")) {
+    if (path.endsWith("/chat") || path.includes("/chat")) {
       const response = await openai.responses.create({
         model: "gpt-4o-mini",
         input: [
