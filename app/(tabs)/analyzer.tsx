@@ -19,6 +19,9 @@ import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 
+const API_BASE_URL = "https://shevalue-backend.vercel.app";
+const ANALYZE_URL = `${API_BASE_URL}/analyze`;
+
 export default function AnalyzerScreen() {
   const relationships = [
     "Husband",
@@ -94,45 +97,43 @@ export default function AnalyzerScreen() {
     setLoading(true);
 
     try {
-      const ANALYZE_URL = "https://shevalue-backend.vercel.app/analyze";
-        
-      const response = await fetch(API_URL, {
+      const response = await fetch(ANALYZE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: message,
+          message: message.trim(),
           image: imageBase64,
           relationshipStatus: selectedRelation,
         }),
       });
 
       const rawText = await response.text();
-console.log("RAW RESPONSE:", rawText);
+      console.log("ANALYZER RAW RESPONSE:", rawText);
 
-let data;
+      let data: any;
 
-try {
-  data = JSON.parse(rawText);
-} catch (error) {
-  console.log("NOT JSON RESPONSE:", rawText);
-  showToast("Server returned invalid response");
-  setLoading(false);
-  return;
-}
+      try {
+        data = JSON.parse(rawText);
+      } catch (error) {
+        console.log("ANALYZER NOT JSON RESPONSE:", rawText);
+        showToast("Server returned invalid response");
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
         console.log("Analyzer backend error:", data);
-        showToast(data.error || "Analyzer failed");
+        showToast(data?.error || "Analyzer failed");
         setLoading(false);
         return;
       }
 
       if (
-        data.feminine_score === undefined ||
-        !data.signal ||
-        !data.suggested_reply
+        data?.feminine_score === undefined ||
+        !data?.signal ||
+        !data?.suggested_reply
       ) {
         console.log("Analyzer invalid response:", data);
         showToast("Analyzer returned incomplete data");

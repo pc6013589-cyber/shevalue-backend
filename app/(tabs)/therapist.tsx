@@ -22,7 +22,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
-const API_URL = "https://shevalue-backend.vercel.app/chat";
+
+const API_BASE_URL = "https://shevalue-backend.vercel.app";
+const API_URL = `${API_BASE_URL}/chat`;
+
 const STORAGE_KEY = "shevalue_conversations";
 
 function TypingDots() {
@@ -83,7 +86,9 @@ export default function Therapist() {
   const [inputHeight, setInputHeight] = useState(44);
   const [typing, setTyping] = useState(false);
 
-  const [pendingImageBase64, setPendingImageBase64] = useState<string | null>(null);
+  const [pendingImageBase64, setPendingImageBase64] = useState<string | null>(
+    null
+  );
   const [pendingImageUri, setPendingImageUri] = useState<string | null>(null);
 
   const drawerX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
@@ -97,7 +102,6 @@ export default function Therapist() {
     }
   };
 
-  /* LOAD PREVIOUS CHATS WHEN APP OPENS */
   useEffect(() => {
     const loadSavedConversations = async () => {
       try {
@@ -122,14 +126,10 @@ export default function Therapist() {
     loadSavedConversations();
   }, []);
 
-  /* SAVE CHATS AUTOMATICALLY */
   useEffect(() => {
     const saveConversations = async () => {
       try {
-        await AsyncStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify(conversations)
-        );
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
       } catch (err) {
         console.log("Save conversations error:", err);
       }
@@ -165,6 +165,7 @@ export default function Therapist() {
     setInput("");
     setPendingImageBase64(null);
     setPendingImageUri(null);
+
     if (drawerOpen) toggleDrawer();
   };
 
@@ -199,6 +200,7 @@ export default function Therapist() {
     if (!input.trim() && !pendingImageBase64) return;
 
     let conv = currentConversation;
+
     if (!conv) {
       const newConv = {
         id: Date.now().toString(),
@@ -256,15 +258,20 @@ export default function Therapist() {
         }),
       });
 
-      const data = await res.json();
+      const rawText = await res.text();
+      console.log("THERAPIST RAW RESPONSE:", rawText);
 
-      if (!res.ok) {
-        console.log("Therapist backend error:", data);
+      let data: any;
+
+      try {
+        data = JSON.parse(rawText);
+      } catch (error) {
+        console.log("THERAPIST NOT JSON RESPONSE:", rawText);
 
         const aiMessage = {
           id: Date.now().toString(),
           role: "assistant",
-          content: data.error || "Something went wrong. Please try again.",
+          content: "Server returned invalid response. Please try again.",
         };
 
         setTyping(false);
@@ -277,14 +284,37 @@ export default function Therapist() {
           )
         );
 
-        showToast(data.error || "Something went wrong");
+        showToast("Server returned invalid response");
+        return;
+      }
+
+      if (!res.ok) {
+        console.log("Therapist backend error:", data);
+
+        const aiMessage = {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: data?.error || "Something went wrong. Please try again.",
+        };
+
+        setTyping(false);
+
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === conv!.id
+              ? { ...c, messages: [...updatedMessages, aiMessage] }
+              : c
+          )
+        );
+
+        showToast(data?.error || "Something went wrong");
         return;
       }
 
       const aiMessage = {
         id: Date.now().toString(),
         role: "assistant",
-        content: data.reply || "No reply received from server.",
+        content: data?.reply || "No reply received from server.",
       };
 
       setTyping(false);
@@ -319,7 +349,6 @@ export default function Therapist() {
     }
   };
 
-  /* OPTIONAL CLEAR CHAT HISTORY BUTTON */
   const clearAllChats = async () => {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
@@ -359,7 +388,9 @@ export default function Therapist() {
           <TouchableOpacity onPress={toggleDrawer}>
             <Text style={styles.menu}>☰</Text>
           </TouchableOpacity>
+
           <Text style={styles.title}>SheValue Therapist</Text>
+
           <TouchableOpacity onPress={startNewConversation}>
             <Text style={styles.plus}>＋</Text>
           </TouchableOpacity>
@@ -375,10 +406,7 @@ export default function Therapist() {
                 onPress={() => setRelationship(r)}
               >
                 <Text
-                  style={[
-                    styles.relText,
-                    isActive && styles.relTextActive,
-                  ]}
+                  style={[styles.relText, isActive && styles.relTextActive]}
                 >
                   {r}
                 </Text>
@@ -400,9 +428,7 @@ export default function Therapist() {
               <View
                 style={[
                   styles.bubble,
-                  item.role === "user"
-                    ? styles.userBubble
-                    : styles.aiBubble,
+                  item.role === "user" ? styles.userBubble : styles.aiBubble,
                   item.isTyping && styles.typingBubble,
                 ]}
               >
@@ -459,10 +485,7 @@ export default function Therapist() {
               keyboardAppearance="dark"
             />
 
-            <TouchableOpacity
-              style={styles.sendButton}
-              onPress={sendMessage}
-            >
+            <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
               <Text style={styles.sendText}>↑</Text>
             </TouchableOpacity>
           </View>
@@ -476,10 +499,7 @@ export default function Therapist() {
       )}
 
       <Animated.View
-        style={[
-          styles.drawer,
-          { transform: [{ translateX: drawerX }] },
-        ]}
+        style={[styles.drawer, { transform: [{ translateX: drawerX }] }]}
       >
         <Text style={styles.drawerTitle}>Conversations</Text>
 
