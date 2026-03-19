@@ -19,11 +19,11 @@ import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 
-const API_BASE_URL = "https://shevalue-backend.vercel.app";
-const ANALYZE_URL = `${API_BASE_URL}/analyze`;
+const BASE_URL = "https://shevalue-backend.vercel.app/api";
+const ANALYZE_URL = `${BASE_URL}/analyze`;
 
 export default function AnalyzerScreen() {
-  const relationships = [
+  const relationshipOptions = [
     "Husband",
     "Fiancé",
     "Boyfriend",
@@ -165,7 +165,7 @@ export default function AnalyzerScreen() {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.push("/settings")}>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
+          <Ionicons name="settings-outline" size={28} color="#fff" />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>SheValue Analyzer</Text>
@@ -174,14 +174,12 @@ export default function AnalyzerScreen() {
       </View>
 
       <ScrollView keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>SheValue Analyzer</Text>
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.pillsRow}
         >
-          {relationships.map((item) => {
+          {relationshipOptions.map((item) => {
             const isActive = selectedRelation === item;
 
             return (
@@ -191,10 +189,7 @@ export default function AnalyzerScreen() {
                 style={[styles.pill, isActive && styles.activePill]}
               >
                 <Text
-                  style={[
-                    styles.pillText,
-                    isActive && styles.activePillText,
-                  ]}
+                  style={[styles.pillText, isActive && styles.activePillText]}
                 >
                   {item}
                 </Text>
@@ -317,14 +312,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
 
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 6,
+    marginBottom: 18,
   },
 
   headerTitle: {
@@ -334,16 +331,7 @@ const styles = StyleSheet.create({
   },
 
   headerRightSpace: {
-    width: 24,
-  },
-
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    marginTop: 20,
-    textAlign: "center",
+    width: 28,
   },
 
   pillsRow: {

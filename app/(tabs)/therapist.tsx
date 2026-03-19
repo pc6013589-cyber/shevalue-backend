@@ -22,10 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
-
-const API_BASE_URL = "https://shevalue-backend.vercel.app";
-const API_URL = `${API_BASE_URL}/chat`;
-
+const BASE_URL = "https://shevalue-backend.vercel.app/api";
+const API_URL = `${BASE_URL}/chat`;
 const STORAGE_KEY = "shevalue_conversations";
 
 function TypingDots() {
