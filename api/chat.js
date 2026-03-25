@@ -6,21 +6,21 @@ const openai = new OpenAI({
 
 function cleanResponse(text = "") {
   return text
-    // remove numbered lists
-    .replace(/^\s*\d+\.\s*\*\*.*?\*\*:?/gm, "")
-    .replace(/^\s*\d+\.\s*/gm, "")
+    // remove numbered lists like 1. 2. 3.
+    .replace(/\n?\s*\d+\.\s+/g, "\n")
 
-    // remove bullet points
-    .replace(/^\s*[-•]\s*/gm, "")
-
-    // remove bold markdown
+    // remove bold
     .replace(/\*\*(.*?)\*\*/g, "$1")
 
-    // split into smaller feminine chat paragraphs
+    // remove phrases that trigger structure
+    .replace(/Here are.*?:/gi, "")
+    .replace(/Consider these steps:?/gi, "")
+    .replace(/This may indicate.*?:/gi, "")
+
+    // split into natural chat blocks
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.length > 180 ? line.slice(0, 180) : line)
     .join("\n\n");
 }
 
@@ -30,39 +30,51 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, image, relationship, history } = req.body || {};
+    const { message, relationship, history } = req.body || {};
     const safeRelationship = relationship || "Unknown";
 
     const input = [];
 
+    // 🔥 VERY STRICT SYSTEM CONTROL
     input.push({
       role: "system",
       content: `
 You are SheValue Therapist.
 
-You speak like a real woman.
+You respond like a real feminine woman.
 
-Soft. Calm. Feminine. Warm.
+STRICT RULES:
+- NEVER use numbers (1, 2, 3)
+- NEVER list things
+- NEVER say "here are"
+- NEVER explain like a teacher
+- NEVER structure your answer
 
-No lists.
-No numbering.
-No explaining like a teacher.
+ALWAYS:
+- speak softly
+- sound human
+- sound like you're texting
+- give emotional clarity
+- keep it natural and flowing
 
-Just natural conversation.
+Your tone:
+calm, feminine, wise, emotionally intelligent
+
+Short paragraphs only.
       `.trim(),
     });
 
+    // history (short)
     if (Array.isArray(history) && history.length > 0) {
-      const lastMessages = history
-        .slice(-6)
-        .map((item) => ({
+      input.push(
+        ...history.slice(-4).map((item) => ({
           role: item.role === "assistant" ? "assistant" : "user",
-          content: item.content || "",
-        }));
-
-      input.push(...lastMessages);
+          content: item.content,
+        }))
+      );
     }
 
+    // 🔥 FORCE STYLE AGAIN IN USER MESSAGE
     input.push({
       role: "user",
       content: `
@@ -70,28 +82,25 @@ Relationship: ${safeRelationship}
 
 ${message || "Talk to me."}
 
-Reply like a calm feminine woman:
-- short
-- soft
-- human
-- no structure
+Respond like a feminine woman:
+No lists.
+No explanation style.
+Just talk naturally.
       `,
     });
 
     const response = await openai.responses.create({
       model: "gpt-4o-mini",
       input,
-      temperature: 0.9,
+      temperature: 1,
     });
 
     let reply = response.output_text || "";
 
-    // 🔥 FORCE CLEAN STYLE
+    // 🔥 FINAL CLEAN (FORCE REMOVE STRUCTURE)
     reply = cleanResponse(reply);
 
-    return res.status(200).json({
-      reply,
-    });
+    return res.status(200).json({ reply });
   } catch (err) {
     console.log("SERVER ERROR:", err);
 
