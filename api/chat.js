@@ -4,28 +4,15 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 🔥 HARD CLEANER (STRONGER)
 function cleanResponse(text = "") {
   return text
-    // remove numbered lists completely
-    .replace(/\d+\.\s.*(\n|$)/g, "")
-
-    // remove bold
     .replace(/\*\*(.*?)\*\*/g, "$1")
-
-    // remove structured phrases
-    .replace(/Consider.*?:/gi, "")
-    .replace(/Here are.*?:/gi, "")
-    .replace(/This means.*?:/gi, "")
-    .replace(/This could.*?:/gi, "")
-
-    // remove extra long sentences (force softness)
-    .split(". ")
-    .map(s => s.trim())
-    .filter(Boolean)
-    .slice(0, 5) // 🔥 LIMIT LENGTH
-    .join(". ")
-
+    .replace(/\d+\.\s.*(\n|$)/g, "")
+    .replace(/It is important to/gi, "")
+    .replace(/A grounded next step could be/gi, "")
+    .replace(/Remember,/gi, "")
+    .replace(/This means/gi, "")
+    .replace(/This behavior/gi, "That kind of pattern")
     .trim();
 }
 
@@ -41,32 +28,34 @@ export default async function handler(req, res) {
     const prompt = `
 You are SheValue Therapist.
 
-You are a soft, feminine woman speaking gently.
+You are a calm, feminine woman texting another woman.
 
-STRICT RULES:
-- No lists
-- No numbering
-- No explanations
-- No teaching tone
-- No "consider", "important", "steps"
+NOT a coach.
+NOT a teacher.
+NOT giving a lecture.
 
-You speak like:
-a calm woman texting another woman.
+RULES:
+- Max 4 sentences
+- No long explanations
+- No structured thinking
+- No "it is important"
+- No advice tone
+- No paragraphs longer than 2 lines
 
-Style:
-short
-soft
-natural
-emotional
+Speak like:
+a real woman in chat
 
-Example tone:
+Tone:
+soft, calm, understanding, emotionally intelligent
+
+Example:
 "I understand why that would feel confusing…"
 
-"You deserve something that feels steady."
+"When someone keeps coming and going like that, it usually doesn’t feel stable."
 
-"That kind of behavior can leave you feeling unsure."
+"You deserve something that feels consistent."
 
-Keep response under 5 sentences.
+Now respond:
 
 Relationship: ${safeRelationship}
 
@@ -78,12 +67,10 @@ ${message}
       model: "gpt-4o-mini",
       input: prompt,
       temperature: 1,
-      max_output_tokens: 200, // 🔥 FORCE SHORT
+      max_output_tokens: 120,
     });
 
     let reply = response.output_text || "";
-
-    // 🔥 FINAL CLEAN
     reply = cleanResponse(reply);
 
     return res.status(200).json({ reply });
