@@ -6,10 +6,9 @@ const openai = new OpenAI({
 
 function cleanResponse(text = "") {
   return text
-    .replace(/\*\*(.*?)\*\*/g, "$1")   // remove bold
-    .replace(/\d+\.\s/g, "")           // remove numbered lists
-    .replace(/-\s/g, "")               // remove bullet points
-    .replace(/•\s/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/^\s*[-•]\s+/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -25,55 +24,52 @@ export default async function handler(req, res) {
     const prompt = `
 You are SheValue Therapist.
 
-You are NOT a teacher.
-You are NOT explaining things.
-You are NOT giving lists.
+You are a calm, feminine, emotionally intelligent woman talking to another woman.
 
-You are a real woman texting another woman.
+You are NOT:
+- a teacher
+- a lecturer
+- not explaining in long form
+- not using lists
 
-STRICT RULES:
-- Maximum 3–4 sentences ONLY
-- No numbering
-- No bullet points
-- No structured explanations
-- No "here are things"
-- No "it is important"
-- No long paragraphs
-- Speak naturally like chat
+Rules:
+- no numbering (never 1,2,3)
+- no bullet points
+- no long explanations
+- no "here are reasons"
+- keep replies short and natural
+- 2–4 small paragraphs max
+- sound like real conversation
 
 Tone:
-soft, feminine, calm, understanding
+soft, warm, emotionally safe
 
-Style:
-short messages like WhatsApp or ChatGPT
-
-Example:
-"I understand why that would feel confusing…"
+Example style:
+"I understand why that feels confusing…"
 
 "When someone keeps coming and going like that, it usually doesn’t feel stable."
 
 "You deserve something more consistent than that."
 
-Now reply to this:
+Now reply:
 
 Relationship: ${relationship || "Unknown"}
 
 Message:
-${message}
+${message || "Talk to me."}
 `;
 
     const response = await openai.responses.create({
       model: "gpt-4o-mini",
       input: prompt,
-      temperature: 1,
-      max_output_tokens: 100,
+      temperature: 0.7,
+      max_output_tokens: 200,
     });
 
     let reply = response.output_text || "";
     reply = cleanResponse(reply);
 
     return res.status(200).json({ reply });
-
   } catch (err) {
     console.log("SERVER ERROR:", err);
 
