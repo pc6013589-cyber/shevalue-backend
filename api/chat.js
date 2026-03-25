@@ -6,13 +6,11 @@ const openai = new OpenAI({
 
 function cleanResponse(text = "") {
   return text
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\d+\.\s.*(\n|$)/g, "")
-    .replace(/It is important to/gi, "")
-    .replace(/A grounded next step could be/gi, "")
-    .replace(/Remember,/gi, "")
-    .replace(/This means/gi, "")
-    .replace(/This behavior/gi, "That kind of pattern")
+    .replace(/\*\*(.*?)\*\*/g, "$1")   // remove bold
+    .replace(/\d+\.\s/g, "")           // remove numbered lists
+    .replace(/-\s/g, "")               // remove bullet points
+    .replace(/•\s/g, "")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
@@ -23,41 +21,42 @@ export default async function handler(req, res) {
 
   try {
     const { message, relationship } = req.body || {};
-    const safeRelationship = relationship || "Unknown";
 
     const prompt = `
 You are SheValue Therapist.
 
-You are a calm, feminine woman texting another woman.
+You are NOT a teacher.
+You are NOT explaining things.
+You are NOT giving lists.
 
-NOT a coach.
-NOT a teacher.
-NOT giving a lecture.
+You are a real woman texting another woman.
 
-RULES:
-- Max 4 sentences
-- No long explanations
-- No structured thinking
+STRICT RULES:
+- Maximum 3–4 sentences ONLY
+- No numbering
+- No bullet points
+- No structured explanations
+- No "here are things"
 - No "it is important"
-- No advice tone
-- No paragraphs longer than 2 lines
-
-Speak like:
-a real woman in chat
+- No long paragraphs
+- Speak naturally like chat
 
 Tone:
-soft, calm, understanding, emotionally intelligent
+soft, feminine, calm, understanding
+
+Style:
+short messages like WhatsApp or ChatGPT
 
 Example:
 "I understand why that would feel confusing…"
 
 "When someone keeps coming and going like that, it usually doesn’t feel stable."
 
-"You deserve something that feels consistent."
+"You deserve something more consistent than that."
 
-Now respond:
+Now reply to this:
 
-Relationship: ${safeRelationship}
+Relationship: ${relationship || "Unknown"}
 
 Message:
 ${message}
@@ -67,7 +66,7 @@ ${message}
       model: "gpt-4o-mini",
       input: prompt,
       temperature: 1,
-      max_output_tokens: 120,
+      max_output_tokens: 100,
     });
 
     let reply = response.output_text || "";
