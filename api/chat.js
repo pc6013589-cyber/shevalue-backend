@@ -6,18 +6,16 @@ const openai = new OpenAI({
 
 function cleanResponse(text = "") {
   return text
-    // remove numbered lists like 1. 2. 3.
-    .replace(/\n?\s*\d+\.\s+/g, "\n")
-
-    // remove bold
     .replace(/\*\*(.*?)\*\*/g, "$1")
-
-    // remove phrases that trigger structure
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/^\s*[-•]\s+/gm, "")
+    .replace(/It sounds like/gi, "I can understand why")
+    .replace(/It is important to/gi, "What matters is")
+    .replace(/A wise response could be/gi, "You could simply say")
+    .replace(/This behavior could stem from/gi, "Sometimes this happens when")
+    .replace(/This behavior may indicate/gi, "Sometimes this can show")
     .replace(/Here are.*?:/gi, "")
     .replace(/Consider these steps:?/gi, "")
-    .replace(/This may indicate.*?:/gi, "")
-
-    // split into natural chat blocks
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
@@ -30,74 +28,131 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message, relationship, history } = req.body || {};
+    const { message, image, relationship, history } = req.body || {};
     const safeRelationship = relationship || "Unknown";
 
     const input = [];
 
-    // 🔥 VERY STRICT SYSTEM CONTROL
     input.push({
       role: "system",
       content: `
 You are SheValue Therapist.
 
-You respond like a real feminine woman.
+You are not an AI assistant in tone.
+You are a calm, emotionally intelligent, feminine woman speaking to another woman.
 
-STRICT RULES:
-- NEVER use numbers (1, 2, 3)
-- NEVER list things
-- NEVER say "here are"
-- NEVER explain like a teacher
-- NEVER structure your answer
+You do not sound like:
+- a teacher
+- a therapist writing an article
+- a coach giving structured lessons
+- an analyst
 
-ALWAYS:
-- speak softly
-- sound human
-- sound like you're texting
-- give emotional clarity
-- keep it natural and flowing
+Strict rules:
+- never use numbered points
+- never use bullet points
+- never sound like a report
+- never over-explain
+- never say "this behavior could mean"
+- never say "it is important to"
+- never say "a wise response could be"
+- never sound clinical
 
-Your tone:
-calm, feminine, wise, emotionally intelligent
+How you speak:
+- soft
+- warm
+- calm
+- natural
+- feminine
+- grounded
+- emotionally safe
 
-Short paragraphs only.
+Write like a real woman talking gently in a chat.
+
+Keep replies:
+- short to medium
+- conversational
+- broken into small paragraphs
+- emotionally intelligent
+- simple and human
+
+Your job:
+- help her feel understood
+- help her see what is really happening
+- guide her without sounding preachy
+- protect her dignity, peace, and standards
+
+Relationship context matters:
+
+If Dating:
+focus on consistency, effort, clarity, emotional safety, and mixed signals
+
+If Married:
+focus on communication, respect, peace, and emotional safety
+
+If Single:
+focus on self-worth, standards, discernment, and emotional protection
+
+If Single Mother:
+be extra gentle, practical, compassionate, and supportive
+
+If helpful, give one soft reply she can send.
+But keep it natural inside the conversation.
+
+Current relationship: ${safeRelationship}
       `.trim(),
     });
 
-    // history (short)
     if (Array.isArray(history) && history.length > 0) {
-      input.push(
-        ...history.slice(-4).map((item) => ({
+      const lastMessages = history
+        .slice(-4)
+        .map((item) => ({
           role: item.role === "assistant" ? "assistant" : "user",
-          content: item.content,
+          content:
+            typeof item.content === "string" && item.content.trim()
+              ? item.content.trim()
+              : "",
         }))
-      );
+        .filter((item) => item.content);
+
+      input.push(...lastMessages);
     }
 
-    // 🔥 FORCE STYLE AGAIN IN USER MESSAGE
-    input.push({
-      role: "user",
-      content: `
+    const userContent = [];
+
+    userContent.push({
+      type: "input_text",
+      text: `
 Relationship: ${safeRelationship}
 
-${message || "Talk to me."}
+${message?.trim() ? message.trim() : "Talk to me."}
 
-Respond like a feminine woman:
-No lists.
-No explanation style.
-Just talk naturally.
-      `,
+Talk to me like a real woman would.
+Soft. Calm. Natural.
+Not like advice notes.
+Not like a lecture.
+Just conversation.
+      `.trim(),
+    });
+
+    if (image) {
+      userContent.push({
+        type: "input_image",
+        image_url: `data:image/jpeg;base64,${image}`,
+      });
+    }
+
+    input.push({
+      role: "user",
+      content: userContent,
     });
 
     const response = await openai.responses.create({
       model: "gpt-4o-mini",
       input,
-      temperature: 1,
+      temperature: 0.7,
     });
 
-    let reply = response.output_text || "";
-
-    // 🔥 FINAL CLEAN (FORCE REMOVE STRUCTURE)
+    let reply = response.output_text || "I’m here with you. Please try again.";
     reply = cleanResponse(reply);
 
     return res.status(200).json({ reply });
