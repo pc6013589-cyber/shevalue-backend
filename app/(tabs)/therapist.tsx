@@ -19,6 +19,7 @@ import {
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
@@ -81,7 +82,7 @@ export default function Therapist() {
   const [input, setInput] = useState("");
   const [relationship, setRelationship] = useState("Single");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [inputHeight, setInputHeight] = useState(44);
+  const [inputHeight, setInputHeight] = useState(24);
   const [typing, setTyping] = useState(false);
 
   const [pendingImageBase64, setPendingImageBase64] = useState<string | null>(
@@ -97,6 +98,15 @@ export default function Therapist() {
   const showToast = (text: string) => {
     if (Platform.OS === "android") {
       ToastAndroid.show(text, ToastAndroid.SHORT);
+    }
+  };
+
+  const copyMessage = async (text: string) => {
+    try {
+      await Clipboard.setStringAsync(text);
+      showToast("Message copied");
+    } catch (err) {
+      console.log("Copy error:", err);
     }
   };
 
@@ -163,6 +173,7 @@ export default function Therapist() {
     setInput("");
     setPendingImageBase64(null);
     setPendingImageUri(null);
+    setInputHeight(24);
 
     if (drawerOpen) toggleDrawer();
   };
@@ -239,7 +250,7 @@ export default function Therapist() {
     );
 
     setInput("");
-    setInputHeight(44);
+    setInputHeight(24);
     setPendingImageBase64(null);
     setPendingImageUri(null);
     setTyping(true);
@@ -252,7 +263,6 @@ export default function Therapist() {
           message: currentInput,
           image: currentImageBase64,
           relationship,
-          history: updatedMessages,
         }),
       });
 
@@ -356,6 +366,7 @@ export default function Therapist() {
       setInput("");
       setPendingImageBase64(null);
       setPendingImageUri(null);
+      setInputHeight(24);
       showToast("All chats cleared");
     } catch (err) {
       console.log("Clear chats error:", err);
@@ -377,6 +388,7 @@ export default function Therapist() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -419,9 +431,11 @@ export default function Therapist() {
             data={messagesToRender}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{
-              padding: 15,
-              paddingBottom: tabBarHeight + 20,
+              paddingHorizontal: 15,
+              paddingTop: 10,
+              paddingBottom: tabBarHeight + 96,
             }}
+            showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
               <View
                 style={[
@@ -440,7 +454,17 @@ export default function Therapist() {
                         style={styles.chatImage}
                       />
                     ) : null}
+
                     <Text style={styles.messageText}>{item.content}</Text>
+
+                    {item.role === "assistant" && !item.isTyping ? (
+                      <TouchableOpacity
+                        style={styles.copyButton}
+                        onPress={() => copyMessage(item.content)}
+                      >
+                        <Text style={styles.copyButtonText}>Copy</Text>
+                      </TouchableOpacity>
+                    ) : null}
                   </>
                 )}
               </View>
@@ -469,21 +493,39 @@ export default function Therapist() {
               <Text style={styles.attachText}>＋</Text>
             </TouchableOpacity>
 
-            <TextInput
-              style={[styles.input, { height: Math.max(44, inputHeight) }]}
-              value={input}
-              onChangeText={setInput}
-              placeholder="Message SheValue Therapist..."
-              placeholderTextColor="#777"
-              multiline
-              textAlignVertical="top"
-              onContentSizeChange={(e) =>
-                setInputHeight(e.nativeEvent.contentSize.height)
-              }
-              keyboardAppearance="dark"
-            />
+            <View style={styles.inputBox}>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    minHeight: 24,
+                    height: Math.min(Math.max(24, inputHeight), 160),
+                  },
+                ]}
+                value={input}
+                onChangeText={setInput}
+                placeholder="Message SheValue Therapist..."
+                placeholderTextColor="#777"
+                multiline
+                scrollEnabled={false}
+                textAlignVertical="top"
+                onContentSizeChange={(e) =>
+                  setInputHeight(e.nativeEvent.contentSize.height)
+                }
+                keyboardAppearance="dark"
+              />
+            </View>
 
-            <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !input.trim() &&
+                  !pendingImageBase64 &&
+                  styles.sendButtonDisabled,
+              ]}
+              onPress={sendMessage}
+              disabled={!input.trim() && !pendingImageBase64}
+            >
               <Text style={styles.sendText}>↑</Text>
             </TouchableOpacity>
           </View>
@@ -502,15 +544,11 @@ export default function Therapist() {
         <Text style={styles.drawerTitle}>Conversations</Text>
 
         <TouchableOpacity onPress={startNewConversation}>
-          <Text style={{ color: "#8B0000", paddingVertical: 12 }}>
-            + New Conversation
-          </Text>
+          <Text style={styles.newConversationText}>+ New Conversation</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={clearAllChats}>
-          <Text style={{ color: "#777", paddingVertical: 12 }}>
-            Clear All Chats
-          </Text>
+          <Text style={styles.clearChatsText}>Clear All Chats</Text>
         </TouchableOpacity>
 
         {conversations.map((conv) => (
@@ -610,6 +648,7 @@ const styles = StyleSheet.create({
   messageText: {
     color: "#fff",
     fontSize: 15,
+    lineHeight: 22,
   },
 
   chatImage: {
@@ -620,18 +659,37 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
 
+  copyButton: {
+    alignSelf: "flex-end",
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    backgroundColor: "#2a2a2a",
+  },
+
+  copyButtonText: {
+    color: "#bbb",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
   inputWrapper: {
     backgroundColor: "#2a2a2a",
-    borderRadius: 30,
-    margin: 15,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderRadius: 28,
+    marginHorizontal: 14,
+    marginBottom: 12,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderWidth: 1,
+    borderColor: "#313131",
   },
 
   previewWrap: {
     width: 110,
     height: 110,
-    borderRadius: 18,
+    borderRadius: 16,
     overflow: "hidden",
     marginBottom: 10,
     position: "relative",
@@ -668,34 +726,63 @@ const styles = StyleSheet.create({
   },
 
   attachButton: {
-    justifyContent: "flex-end",
-    paddingBottom: 4,
-    marginRight: 8,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 6,
+    marginBottom: 2,
   },
 
   attachText: {
     color: "#888",
-    fontSize: 24,
+    fontSize: 26,
+    lineHeight: 26,
+    marginTop: -1,
+  },
+
+  inputBox: {
+    flex: 1,
+    justifyContent: "flex-end",
+    minHeight: 24,
+    paddingTop: 6,
+    paddingBottom: 6,
   },
 
   input: {
-    flex: 1,
     color: "#fff",
     fontSize: 16,
-    maxHeight: 140,
-    marginHorizontal: 8,
+    lineHeight: 22,
+    maxHeight: 160,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginHorizontal: 4,
+    textAlignVertical: "top",
   },
 
   sendButton: {
     backgroundColor: "#8B0000",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+    marginLeft: 6,
+    marginBottom: 2,
   },
 
-  sendText: { color: "#fff", fontSize: 18 },
+  sendButtonDisabled: {
+    backgroundColor: "#4d1b1b",
+    opacity: 0.75,
+  },
+
+  sendText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginTop: -2,
+  },
 
   drawer: {
     position: "absolute",
@@ -712,6 +799,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     marginBottom: 20,
+  },
+
+  newConversationText: {
+    color: "#8B0000",
+    paddingVertical: 12,
+  },
+
+  clearChatsText: {
+    color: "#777",
+    paddingVertical: 12,
   },
 
   convItem: {

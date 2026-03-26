@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   StatusBar,
+  KeyboardAvoidingView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -163,157 +164,185 @@ export default function AnalyzerScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push("/settings")}>
-          <Ionicons name="settings-outline" size={28} color="#fff" />
-        </TouchableOpacity>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.push("/settings")}>
+            <Ionicons name="settings-outline" size={28} color="#fff" />
+          </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>SheValue Analyzer</Text>
+          <Text style={styles.headerTitle}>SheValue Analyzer</Text>
 
-        <View style={styles.headerRightSpace} />
-      </View>
-
-      <ScrollView keyboardShouldPersistTaps="handled">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.pillsRow}
-        >
-          {relationshipOptions.map((item) => {
-            const isActive = selectedRelation === item;
-
-            return (
-              <TouchableOpacity
-                key={item}
-                onPress={() => setSelectedRelation(item)}
-                style={[styles.pill, isActive && styles.activePill]}
-              >
-                <Text
-                  style={[styles.pillText, isActive && styles.activePillText]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        <View style={styles.inputBox}>
-          <TextInput
-            style={styles.input}
-            placeholder="Paste his message..."
-            placeholderTextColor="#666"
-            multiline
-            value={message}
-            onChangeText={setMessage}
-            keyboardAppearance="dark"
-            textAlignVertical="top"
-          />
-
-          <View style={styles.inputBottomRow}>
-            <TouchableOpacity style={styles.plusButton} onPress={pickScreenshot}>
-              <Text style={styles.plusText}>＋</Text>
-            </TouchableOpacity>
-
-            {imagePicked && (
-              <View style={styles.imageTagWrap}>
-                <Text style={styles.imageTag}>Screenshot added</Text>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    setImageBase64(null);
-                    setImagePicked(false);
-                  }}
-                >
-                  <Text style={styles.removeTag}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+          <View style={styles.headerRightSpace} />
         </View>
 
-        <TouchableOpacity onPress={analyzeMessage}>
-          <LinearGradient
-            colors={["#5A0A0A", "#8B0000"]}
-            style={styles.analyzeBtn}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.pillsRow}
           >
-            <Text style={styles.analyzeText}>Analyze Message</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            {relationshipOptions.map((item) => {
+              const isActive = selectedRelation === item;
 
-        {loading && (
-          <View style={styles.loadingBox}>
-            <ActivityIndicator size="large" color="#A4161A" />
-            <Text style={styles.loadingText}>Analyzing message...</Text>
-          </View>
-        )}
+              return (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() => setSelectedRelation(item)}
+                  style={[styles.pill, isActive && styles.activePill]}
+                >
+                  <Text
+                    style={[styles.pillText, isActive && styles.activePillText]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
-        {score !== null && !loading && (
-          <View style={styles.resultCard}>
-            <Text style={styles.score}>Feminine Value Score: {score}%</Text>
+          <View style={styles.inputBox}>
+            <TextInput
+              style={styles.input}
+              placeholder="Paste his message..."
+              placeholderTextColor="#666"
+              multiline
+              value={message}
+              onChangeText={setMessage}
+              keyboardAppearance="dark"
+              textAlignVertical="top"
+              autoCorrect
+              spellCheck
+              autoCapitalize="sentences"
+              keyboardType="default"
+              returnKeyType="default"
+              blurOnSubmit={false}
+              scrollEnabled
+              smartInsertDelete={true}
+              textContentType="none"
+            />
 
-            <View style={styles.signalRow}>
-              <Text style={styles.signalLabel}>Signal:</Text>
+            <View style={styles.inputBottomRow}>
+              <TouchableOpacity style={styles.plusButton} onPress={pickScreenshot}>
+                <Text style={styles.plusText}>＋</Text>
+              </TouchableOpacity>
 
-              <View style={styles.signalBadge}>
-                <Text style={styles.signalText}>{signal}</Text>
-              </View>
+              {imagePicked && (
+                <View style={styles.imageTagWrap}>
+                  <Text style={styles.imageTag}>Screenshot added</Text>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      setImageBase64(null);
+                      setImagePicked(false);
+                    }}
+                  >
+                    <Text style={styles.removeTag}>Remove</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
+          </View>
 
-            {patternDetected ? (
+          <TouchableOpacity onPress={analyzeMessage} disabled={loading}>
+            <LinearGradient
+              colors={["#5A0A0A", "#8B0000"]}
+              style={[styles.analyzeBtn, loading && styles.disabledButton]}
+            >
+              <Text style={styles.analyzeText}>
+                {loading ? "Analyzing..." : "Analyze Message"}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {loading && (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="large" color="#A4161A" />
+              <Text style={styles.loadingText}>Analyzing message...</Text>
+            </View>
+          )}
+
+          {score !== null && !loading && (
+            <View style={styles.resultCard}>
+              <Text style={styles.score}>Feminine Value Score: {score}%</Text>
+
               <View style={styles.signalRow}>
-                <Text style={styles.signalLabel}>Pattern:</Text>
+                <Text style={styles.signalLabel}>Signal:</Text>
 
                 <View style={styles.signalBadge}>
-                  <Text style={styles.signalText}>{patternDetected}</Text>
+                  <Text style={styles.signalText}>{signal}</Text>
                 </View>
               </View>
-            ) : null}
 
-            <Text style={styles.reply}>{reply}</Text>
+              {patternDetected ? (
+                <View style={styles.signalRow}>
+                  <Text style={styles.signalLabel}>Pattern:</Text>
 
-            <View style={styles.actionsRow}>
-              <TouchableOpacity onPress={() => copyReply(reply)}>
-                <Text style={styles.copy}>Copy</Text>
-              </TouchableOpacity>
+                  <View style={styles.signalBadge}>
+                    <Text style={styles.signalText}>{patternDetected}</Text>
+                  </View>
+                </View>
+              ) : null}
 
-              <TouchableOpacity onPress={clearAll}>
-                <Text style={styles.clear}>Clear</Text>
-              </TouchableOpacity>
+              <Text style={styles.reply}>{reply}</Text>
+
+              <View style={styles.actionsRow}>
+                <TouchableOpacity onPress={() => copyReply(reply)}>
+                  <Text style={styles.copy}>Copy</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={clearAll}>
+                  <Text style={styles.clear}>Clear</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
+          )}
 
-        {needsTherapist && (
-          <TouchableOpacity
-            style={styles.therapistBtn}
-            onPress={() =>
-              router.push({
-                pathname: "/therapist",
-                params: {
-                  analyzedMessage: message,
-                  suggestedReply: reply,
-                  relationshipStatus: selectedRelation,
-                },
-              })
-            }
-          >
-            <Text style={styles.therapistText}>
-              Talk to Therapist for Clarity
-            </Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
+          {needsTherapist && (
+            <TouchableOpacity
+              style={styles.therapistBtn}
+              onPress={() =>
+                router.push({
+                  pathname: "/therapist",
+                  params: {
+                    analyzedMessage: message,
+                    suggestedReply: reply,
+                    relationshipStatus: selectedRelation,
+                  },
+                })
+              }
+            >
+              <Text style={styles.therapistText}>
+                Talk to Therapist for Clarity
+              </Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#000",
     paddingHorizontal: 20,
     paddingTop: 10,
+  },
+
+  scrollContent: {
+    paddingBottom: 40,
   },
 
   header: {
@@ -407,6 +436,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 12,
     flexWrap: "wrap",
+    flex: 1,
   },
 
   imageTag: {
@@ -425,6 +455,10 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
     marginBottom: 20,
+  },
+
+  disabledButton: {
+    opacity: 0.75,
   },
 
   analyzeText: {
@@ -460,6 +494,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 8,
+    flexWrap: "wrap",
   },
 
   signalLabel: {
@@ -475,6 +510,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 15,
+    flexShrink: 1,
+    marginTop: 4,
   },
 
   signalText: {

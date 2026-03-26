@@ -1,80 +1,164 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ScrollView,
+  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
+  const [userName, setUserName] = useState("SheValue User");
+  const [userEmail, setUserEmail] = useState("No email available");
+  const [signInMethod, setSignInMethod] = useState("Email");
+
+  useEffect(() => {
+    loadUserInfo();
+  }, []);
+
+  const loadUserInfo = async () => {
+    try {
+      const savedEmail = await AsyncStorage.getItem("userEmail");
+      const savedMethod = await AsyncStorage.getItem("signInMethod");
+
+      if (savedEmail) {
+        setUserEmail(savedEmail);
+
+        const nameFromEmail = savedEmail.split("@")[0];
+        const cleanName =
+          nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+        setUserName(cleanName);
+      }
+
+      if (savedMethod) {
+        setSignInMethod(savedMethod);
+      }
+    } catch (error) {
+      console.log("Load user info error:", error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await AsyncStorage.removeItem("isLoggedIn");
+      await AsyncStorage.removeItem("signInMethod");
+      await AsyncStorage.removeItem("userEmail");
+
+      router.replace("/(auth)/login");
+    } catch (error) {
+      console.log("Sign out error:", error);
+      Alert.alert("Error", "Unable to sign out right now.");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={26} color="#fff" />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={26} color="#fff" />
+          </TouchableOpacity>
+
+          <Text style={styles.headerTitle}>Settings</Text>
+
+          <View style={{ width: 26 }} />
+        </View>
+
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Ionicons name="person" size={26} color="#fff" />
+          </View>
+
+          <View style={styles.profileInfo}>
+            <Text style={styles.name}>{userName}</Text>
+            <Text style={styles.email}>{userEmail}</Text>
+            <Text style={styles.provider}>Signed in with {signInMethod}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>Account</Text>
+
+        <TouchableOpacity style={styles.item}>
+          <View>
+            <Text style={styles.itemText}>Relationship Status</Text>
+            <Text style={styles.itemSubText}>Single</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#666" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Settings</Text>
+        <TouchableOpacity style={styles.item}>
+          <View>
+            <Text style={styles.itemText}>Sign-In Method</Text>
+            <Text style={styles.itemSubText}>{signInMethod}</Text>
+          </View>
+          <Ionicons
+            name={
+              signInMethod === "Apple"
+                ? "logo-apple"
+                : signInMethod === "Google"
+                ? "logo-google"
+                : "mail-outline"
+            }
+            size={20}
+            color="#666"
+          />
+        </TouchableOpacity>
 
-        <View style={{ width: 26 }} />
-      </View>
+        <TouchableOpacity style={styles.item}>
+          <View>
+            <Text style={styles.itemText}>Connected Accounts</Text>
+            <Text style={styles.itemSubText}>
+              Apple, Google, or Email login
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#666" />
+        </TouchableOpacity>
 
-      {/* Profile Card */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={26} color="#fff" />
-        </View>
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => router.push("/notifications")}
+        >
+          <View>
+            <Text style={styles.itemText}>Notifications</Text>
+            <Text style={styles.itemSubText}>Manage app alerts</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#666" />
+        </TouchableOpacity>
 
-        <View style={styles.profileInfo}>
-          <Text style={styles.name}>Peter</Text>
-          <Text style={styles.email}>peter@email.com</Text>
-        </View>
-      </View>
+        <Text style={styles.sectionTitle}>Legal</Text>
 
-      {/* Account Section */}
-      <Text style={styles.sectionTitle}>Account</Text>
+        <TouchableOpacity
+          style={styles.item}
+          onPress={() => router.push("/privacy")}
+        >
+          <View>
+            <Text style={styles.itemText}>Privacy Policy</Text>
+            <Text style={styles.itemSubText}>Read how your data is handled</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#666" />
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.item}>
-        <View>
-          <Text style={styles.itemText}>Relationship Status</Text>
-          <Text style={styles.itemSubText}>Single</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#666" />
-      </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Membership</Text>
 
-      <TouchableOpacity
-        style={styles.item}
-        onPress={() => router.push("/notifications")}
-      >
-        <View>
-          <Text style={styles.itemText}>Notifications</Text>
-          <Text style={styles.itemSubText}>Manage app alerts</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#666" />
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.item}>
+          <View>
+            <Text style={styles.itemText}>Current Plan</Text>
+            <Text style={styles.itemSubText}>3-Day Free Trial</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#666" />
+        </TouchableOpacity>
 
-      {/* Legal Section */}
-      <Text style={styles.sectionTitle}>Legal</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
+          <Text style={styles.logoutText}>Sign Out</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.item}
-        onPress={() => router.push("/privacy")}
-      >
-        <View>
-          <Text style={styles.itemText}>Privacy Policy</Text>
-          <Text style={styles.itemSubText}>Read how your data is handled</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#666" />
-      </TouchableOpacity>
-
-      {/* Logout */}
-      <TouchableOpacity style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Sign Out</Text>
-      </TouchableOpacity>
+        <View style={{ height: 30 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -135,6 +219,13 @@ const styles = StyleSheet.create({
   email: {
     color: "#888",
     fontSize: 14,
+    marginBottom: 4,
+  },
+
+  provider: {
+    color: "#A4161A",
+    fontSize: 13,
+    fontWeight: "600",
   },
 
   sectionTitle: {
