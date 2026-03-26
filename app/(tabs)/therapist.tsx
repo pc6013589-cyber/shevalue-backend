@@ -23,7 +23,7 @@ import * as Clipboard from "expo-clipboard";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.75;
-const BASE_URL = "https://shevalue-backend-acuo0t3j2-peter-chukwu.vercel.app/api";
+const BASE_URL = "https://shevalue-backend.vercel.app/api";
 const API_URL = `${BASE_URL}/chat`;
 const STORAGE_KEY = "shevalue_conversations";
 
