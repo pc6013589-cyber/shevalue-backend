@@ -27,6 +27,106 @@ const BASE_URL = "https://shevalue-backend.vercel.app/api";
 const API_URL = `${BASE_URL}/chat`;
 const STORAGE_KEY = "shevalue_conversations";
 
+function sanitizeTherapistReply(text: string) {
+  if (!text) return "I'm here with you.";
+
+  let cleaned = text;
+
+  // Remove AI tone + branding
+  cleaned = cleaned
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/A high-value feminine woman/gi, "You")
+    .replace(/As a high-value feminine woman/gi, "You")
+    .replace(/High-value women/gi, "You")
+    .replace(/high-value women/gi, "you");
+
+  // Fix broken grammar
+  cleaned = cleaned
+    .replace(/That can feel you’re going through/gi, "That can feel really confusing, especially when")
+    .replace(/You understands/gi, "You understand")
+    .replace(/You understands that/gi, "")
+    .replace(/Here’s how you might interpret this situation:?/gi, "")
+    .replace(/Possible Unhealthiness:?/gi, "")
+    .replace(/This behavior may indicate/gi, "Sometimes it can mean")
+    .replace(/It’s essential to consider how this aligns with your values/gi, "What matters is how this feels to you");
+
+  // Replace robotic AI intros
+  cleaned = cleaned
+    .replace(/It sounds like you're feeling/gi, "That can feel")
+    .replace(/It sounds like/gi, "That can feel")
+    .replace(/you’re going through a confusing and possibly frustrating situation/gi, "really confusing and frustrating");
+
+  // Remove list / structured AI output
+  cleaned = cleaned
+    .replace(/^\s*\d+\.\s+/gm, "")
+    .replace(/^\s*[-•]\s+/gm, "");
+
+  // Remove AI endings
+  cleaned = cleaned
+    .replace(/Would you like to explore.*$/gim, "")
+    .replace(/How does that resonate with you\??/gi, "How is that sitting with you?")
+    .replace(/Would you like guidance.*$/gim, "Do you want help replying to him?");
+
+  // Clean spacing
+  cleaned = cleaned
+    .replace(/\s+([.,!?])/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  // Keep it SHORT (very important for your app style)
+  const paragraphs = cleaned
+    .split("\n")
+    .map(p => p.trim())
+    .filter(Boolean);
+
+  return paragraphs.slice(0, 3).join("\n\n") || "I'm here with you.";
+}
+  
+
+  
+
+  
+  
+    
+    
+
+  
+    
+  
+
+    
+  
+
+    
+    
+  
+    
+  
+    
+  
+    
+    
+    
+    
+
+
+  
+  
+      
+  
+  
+
+
+
+
+  
+  
+
+
+
+  
+
+
 function TypingDots() {
   const dot1 = useRef(new Animated.Value(0.3)).current;
   const dot2 = useRef(new Animated.Value(0.3)).current;
@@ -322,7 +422,9 @@ export default function Therapist() {
       const aiMessage = {
         id: Date.now().toString(),
         role: "assistant",
-        content: data?.reply || "No reply received from server.",
+        content: sanitizeTherapistReply(
+          data?.reply || "I'm here with you. Please try again."
+        ),
       };
 
       setTyping(false);
@@ -433,7 +535,7 @@ export default function Therapist() {
             contentContainerStyle={{
               paddingHorizontal: 15,
               paddingTop: 10,
-              paddingBottom: tabBarHeight + 96,
+              paddingBottom: tabBarHeight + 108,
             }}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
@@ -498,8 +600,8 @@ export default function Therapist() {
                 style={[
                   styles.input,
                   {
-                    minHeight: 24,
-                    height: Math.min(Math.max(24, inputHeight), 160),
+                    minHeight: 26,
+                    height: Math.min(Math.max(26, inputHeight), 180),
                   },
                 ]}
                 value={input}
@@ -732,7 +834,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 6,
-    marginBottom: 2,
+    marginBottom: 4,
   },
 
   attachText: {
@@ -745,16 +847,16 @@ const styles = StyleSheet.create({
   inputBox: {
     flex: 1,
     justifyContent: "flex-end",
-    minHeight: 24,
-    paddingTop: 6,
-    paddingBottom: 6,
+    minHeight: 26,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
 
   input: {
     color: "#fff",
     fontSize: 16,
     lineHeight: 22,
-    maxHeight: 160,
+    maxHeight: 180,
     paddingTop: 0,
     paddingBottom: 0,
     marginHorizontal: 4,
@@ -769,7 +871,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 6,
-    marginBottom: 2,
+    marginBottom: 4,
   },
 
   sendButtonDisabled: {
