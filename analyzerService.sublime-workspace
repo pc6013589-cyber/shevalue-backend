@@ -1,0 +1,279 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/pp/Projects/shevalue/app/(tabs)/analyzer.tsx",
+		"/Users/pp/Projects/shevalue/analyzerService.js",
+		"/Users/pp/Projects/shevalue/app/(tabs)/_layout.tsx",
+		"/Users/pp/Projects/shevalue/app.json",
+		"/Users/pp/Projects/shevalue/ios/SheValue/Images.xcassets/SplashScreenLogo.imageset/image@2x.png",
+		"/Users/pp/Projects/shevalue/app/paywall.tsx",
+		"/Users/pp/Projects/shevalue/assets/images/icon.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-9.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-10.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-8.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-7.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-6.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-4.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-5.png",
+		"/Users/pp/Projects/shevalue/app/(tabs)/index.tsx",
+		"/Users/pp/Projects/shevalue/app/onboarding/index.tsx",
+		"/Users/pp/Projects/shevalue/app/index.tsx",
+		"/Users/pp/Projects/shevalue/firebaseConfig.ts",
+		"/Users/pp/Projects/shevalue/env",
+		"/Users/pp/Projects/shevalue/app/(auth)/login.tsx",
+		"/Users/pp/Projects/shevalue/vercel.json",
+		"/Users/pp/Projects/shevalue/app/onboarding/splash.tsx",
+		"/Users/pp/Projects/shevalue/app/onboarding/welcome.tsx",
+		"/Users/pp/Projects/shevalue/app/onboarding/features.tsx",
+		"/Users/pp/Projects/shevalue/app/onboarding/relationship.tsx",
+		"/Users/pp/Projects/shevalue/app/onboarding/finish.tsx",
+		"/Users/pp/Projects/shevalue/app/_layout.tsx",
+		"/Users/pp/Projects/shevalue/assets/images/android-icon-foreground.png",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-3.png",
+		"/Users/pp/Projects/shevalue/app/settings.tsx",
+		"/Users/pp/Projects/shevalue/app/(auth)/signup.tsx",
+		"/Users/pp/Projects/shevalue/app/onboarding/_layout.tsx",
+		"/Users/pp/Projects/shevalue/app/privacy.tsx",
+		"/Users/pp/Projects/shevalue/app/notifications.tsx",
+		"/Users/pp/Projects/shevalue/app/(tabs)/therapist.tsx",
+		"/Users/pp/Projects/shevalue/screens/TherapistScreen.js",
+		"/Users/pp/Projects/shevalue/api/index.js",
+		"/Users/pp/Projects/shevalue/api/analyze.js",
+		"/Users/pp/Projects/shevalue/api/chat.js",
+		"/var/folders/ns/yr0wf0l56t11v_2n973k5kw40000gn/T/mozDraggedFiles/0-2.png",
+		"/Users/pp/Projects/shevalue/backend/.env",
+		"/Users/pp/Projects/shevalue/backend/routes/chat.js",
+		"/Users/pp/Projects/shevalue/backend/routes/analyze.js",
+		"/Users/pp/Projects/shevalue/backend/package.json",
+		"/Users/pp/Projects/shevalue/backend/services/analyzerService.js",
+		"/Users/pp/Projects/shevalue/backend/services/therapistService.js",
+		"/Users/pp/Projects/shevalue/backend/services/openaiClient.js",
+		"/backend/routes/chat.js",
+		"/Users/pp/Projects/shevalue/api/server.js",
+		"/Users/pp/Projects/shevalue/backend/server.js",
+		"/Users/pp/Downloads/text-446B-B634-17-0.txt",
+		"/Users/pp/Downloads/008._Shaboozey_-_A_Bar_Song_Tipsy_-_A_Bar_Song_Tipsy_(mp3.pm).mp3",
+		"/Users/pp/Projects/shevalue/app/lib/openai.ts",
+		"/Users/pp/Projects/shevalue/App.js",
+		"/Users/pp/Projects/shevalue/context/AuthContext.js",
+		"/Users/pp/Projects/shevalue/app/therapist.tsx",
+		"/Users/pp/Projects/shevalue/screens/AnalyzerScreen.js",
+		"/Users/pp/Projects/shevalue/package.json",
+		"/Users/pp/Projects/shevalue/app/(tabs)/therapist.tsx~",
+		"/Users/pp/shevalue/screens/Analyzer.js.save",
+		"/Users/pp/Desktop/shevalue/backend/server.js",
+		"/Users/pp/Desktop/shevalue/App.js",
+		"/Users/pp/Desktop/shevalue/backend/.env",
+		"/Users/pp/shevalue/screens/Analyzer.js.save.1",
+		"/Users/pp/Desktop/shevalue/package.json",
+		"/Users/pp/Desktop/shevalue/backend/package.json",
+		"/Users/pp/Desktop/shevalue/screens/components/StatusSelector.js",
+		"/Users/pp/Desktop/shevalue/config.js",
+		"/Users/pp/Desktop/shevalue/app.json",
+		"/Users/pp/Desktop/shevalue/backend/App.js",
+		"/Users/pp/Desktop/shevalue/screens/TherapistScreen.js",
+		"/Users/pp/Desktop/shevalue/backend/routes/ocr.js",
+		"/Users/pp/Desktop/shevalue/backend/routes/therapist.js",
+		"/Users/pp/Desktop/shevalue/backend/routes/analyze.js",
+		"/Users/pp/Desktop/shevalue/components/StatusSelector.js",
+		"/Users/pp/Desktop/shevalue/screens/AnalyzerScreen.js",
+		"/Users/pp/Desktop/shevalue/index.js",
+		"/Users/pp/Desktop/shevalue/server.js",
+		"/Users/pp/Desktop/shevalue/Analyzer.js",
+		"/Users/pp/shevalue/App.js",
+		"/Users/pp/shevalue/screens/Home.js",
+		"/Users/pp/shevalue/.env",
+		"/Users/pp/shevalue/shevalue-backend/package.json",
+		"/Users/pp/shevalue/shevalue-backend/.env",
+		"/Users/pp/shevalue/shevalue-backend/server.js",
+		"/Users/pp/shevalue/services/openai.js",
+		"/Users/pp/shevalue/app.json",
+		"/Users/pp/shevalue/services/therapist.js",
+		"/Users/pp/shevalue/screens/OCRAnalyzer.js",
+		"/Users/pp/shevalue/screens/ImageAnalyzer.js",
+		"/Users/pp/shevalue/screens/Analyzer.js",
+		"/Users/pp/shevalue/screens/AIReply.js",
+		"/Users/pp/shevalue/index.js",
+		"/Users/pp/shevalue/package.json",
+		"/Users/pp/shevalue/.expo/services/openai.js",
+		"/package.json",
+		"/Users/pp/Desktop/shevalue/app/unmatched.js",
+		"/Users/pp/Desktop/shevalue/babel.config.js",
+		"/Users/pp/Desktop/shevalue/app/ai-reply.tsx",
+		"//Users/pp/Desktop/shevalue/app/ai-reply.tsx",
+		"//Users/pp/Desktop/shevalue/app/(tabs)/index.tsx",
+		"/Users/pp/Desktop/shevalue/app/(tabs)/index.tsx",
+		"/Users/pp/Desktop/shevalue/app/_layout.tsx",
+		"/Users/pp/Desktop/shevalue/screen/AIReply.tsx",
+		"/Users/pp/Desktop/shevalue/screen/Home.tsx",
+		"//Users/pp/shevalue/App.js",
+		"/Users/pp/shevalue/app/index.tsx",
+		"/Users/pp/shevalue/app/_layout.tsx",
+		"/Users/pp/shevalue/app/ai-reply.tsx",
+		"//Users/pp/shevalue/app/(tabs)/index.tsx"
+	],
+	"find":
+	{
+		"height": 24.0
+	},
+	"find_in_files":
+	{
+		"height": 98.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"scrollbar_highlights": true,
+		"show_context": true,
+		"use_buffer2": true,
+		"use_gitignore": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 24.0
+	},
+	"input":
+	{
+		"height": 36.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"pinned_build_system": "",
+	"project": "analyzerService.sublime-project",
+	"replace":
+	{
+		"height": 44.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

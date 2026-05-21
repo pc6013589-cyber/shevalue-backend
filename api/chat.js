@@ -37,11 +37,15 @@ You deserve consistency. If you choose to respond, keep it simple and clear."
 
 IMPORTANT:
 Keep responses clean, human, and emotionally intelligent.
-      `
+      `.trim()   // Removes unnecessary leading/trailing whitespace
     },
     {
       role: "user",
       content: message
     }
-  ]
+  ],
+  max_tokens: 300,           // ← Prevents overly long, expensive outputs (adjust if needed)
+  temperature: 0.7,          // Balanced for natural but controlled feminine tone
+  // Optional but recommended for even more savings if you call this often:
+  // prompt_cache_retention: "high"   // if using the newer Responses API or if available
 });

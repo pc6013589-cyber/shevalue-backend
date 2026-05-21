@@ -47,7 +47,11 @@ export default function TabLayout() {
                 borderRadius: 20,
               }}
             >
-              <Ionicons name="analytics" size={22} color={color} />
+              <Ionicons
+                name="analytics"
+                size={22}
+                color={color}
+              />
             </View>
           ),
         }}
@@ -67,7 +71,11 @@ export default function TabLayout() {
                 borderRadius: 20,
               }}
             >
-              <Ionicons name="chatbubbles" size={22} color={color} />
+              <Ionicons
+                name="chatbubbles"
+                size={22}
+                color={color}
+              />
             </View>
           ),
         }}

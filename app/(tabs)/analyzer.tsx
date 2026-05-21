@@ -90,7 +90,7 @@ export default function AnalyzerScreen() {
     setImageBase64(null);
     setImagePicked(false);
   };
-
+    
   const analyzeMessage = async () => {
     if (!message.trim() && !imageBase64) return;
 

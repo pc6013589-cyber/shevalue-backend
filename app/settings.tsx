@@ -37,6 +37,8 @@ export default function SettingsScreen() {
 
       if (savedMethod) {
         setSignInMethod(savedMethod);
+      } else {
+        setSignInMethod("Email");
       }
     } catch (error) {
       console.log("Load user info error:", error);
@@ -77,7 +79,7 @@ export default function SettingsScreen() {
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{userName}</Text>
             <Text style={styles.email}>{userEmail}</Text>
-            <Text style={styles.provider}>Signed in with {signInMethod}</Text>
+            <Text style={styles.provider}>Signed in with Email</Text>
           </View>
         </View>
 
@@ -94,29 +96,9 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.item}>
           <View>
             <Text style={styles.itemText}>Sign-In Method</Text>
-            <Text style={styles.itemSubText}>{signInMethod}</Text>
+            <Text style={styles.itemSubText}>Email</Text>
           </View>
-          <Ionicons
-            name={
-              signInMethod === "Apple"
-                ? "logo-apple"
-                : signInMethod === "Google"
-                ? "logo-google"
-                : "mail-outline"
-            }
-            size={20}
-            color="#666"
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.item}>
-          <View>
-            <Text style={styles.itemText}>Connected Accounts</Text>
-            <Text style={styles.itemSubText}>
-              Apple, Google, or Email login
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#666" />
+          <Ionicons name="mail-outline" size={20} color="#666" />
         </TouchableOpacity>
 
         <TouchableOpacity

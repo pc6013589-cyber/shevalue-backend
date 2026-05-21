@@ -1,20 +1,23 @@
 {
   "expo": {
-    "name": "shevalue",
+    "name": "SheValue",
     "slug": "shevalue",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/shevalue-icon.png",
     "scheme": "shevalue",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.messipe10.shevalue",
+      "buildNumber": "35",
+      "icon": "./assets/images/shevalue-icon.png",
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition.",
-        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone."
-      },
-      "bundleIdentifier": "com.messipe10.shevalue"
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -49,11 +52,18 @@
         }
       ],
       "expo-speech-recognition",
-      "@react-native-google-signin/google-signin"
+      "expo-web-browser",
+      "expo-iap"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f9dfc3da-98dd-4ca1-96c5-7baba235ea41"
+      }
     }
   }
 }
