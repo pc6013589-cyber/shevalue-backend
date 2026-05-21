@@ -39,6 +39,7 @@
     },
     "plugins": [
       "expo-router",
+      "./withFollyFix",
       [
         "expo-splash-screen",
         {
