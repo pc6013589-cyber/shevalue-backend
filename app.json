@@ -39,7 +39,6 @@
     },
     "plugins": [
       "expo-router",
-      "./withFollyFix",
       [
         "expo-splash-screen",
         {
@@ -53,8 +52,7 @@
         }
       ],
       "expo-speech-recognition",
-      "expo-web-browser",
-      "expo-iap"
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

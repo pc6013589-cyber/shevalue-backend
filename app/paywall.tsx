@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
-import {
-  useIAP,
-  withIAPContext,
-  requestSubscription,
-  finishTransaction,
-  IAPErrorCode,
-} from "expo-iap";
+
+// expo-iap imports commented out temporarily
+// import {
+//   useIAP,
+//   withIAPContext,
+//   requestSubscription,
+//   finishTransaction,
+//   IAPErrorCode,
+// } from "expo-iap";
 
 const PRODUCT_IDS = [
   "shevalue_weekly",
@@ -27,69 +29,29 @@ function PaywallScreen() {
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [loading, setLoading] = useState(false);
 
-  const {
-    connected,
-    currentPurchase,
-    currentPurchaseError,
-    getSubscriptions,
-  } = useIAP();
-
-  // Load subscriptions when connected
-  useEffect(() => {
-    if (connected) {
-      getSubscriptions(PRODUCT_IDS).catch((e) =>
-        console.log("Load subscriptions error:", e)
-      );
-    }
-  }, [connected]);
-
-  // Handle successful purchase
-  useEffect(() => {
-    async function handlePurchase() {
-      if (currentPurchase) {
-        try {
-          await finishTransaction({
-            purchase: currentPurchase,
-            isConsumable: false,
-          });
-          Alert.alert("Success!", "Welcome to SheValue Premium!");
-          router.replace("/(tabs)/analyzer");
-        } catch (e) {
-          console.log("Finish transaction error:", e);
-        }
-      }
-    }
-    handlePurchase();
-  }, [currentPurchase]);
-
-  // Handle purchase error
-  useEffect(() => {
-    if (currentPurchaseError) {
-      if (currentPurchaseError.code !== IAPErrorCode.E_USER_CANCELLED) {
-        Alert.alert(
-          "Purchase Error",
-          currentPurchaseError.message || "Something went wrong."
-        );
-      }
-      setLoading(false);
-    }
-  }, [currentPurchaseError]);
+  // IAP hooks commented out temporarily
+  // const {
+  //   connected,
+  //   currentPurchase,
+  //   currentPurchaseError,
+  //   getSubscriptions,
+  // } = useIAP();
 
   const handlePurchase = async () => {
     try {
       setLoading(true);
+      // IAP purchase logic commented out temporarily
+      // let productId = "";
+      // if (selectedPlan === "weekly") productId = "shevalue_weekly";
+      // if (selectedPlan === "monthly") productId = "shevalue_monthly";
+      // if (selectedPlan === "yearly") productId = "shevalue_premium_yearly";
+      // await requestSubscription({ sku: productId });
 
-      let productId = "";
-      if (selectedPlan === "weekly") productId = "shevalue_weekly";
-      if (selectedPlan === "monthly") productId = "shevalue_monthly";
-      if (selectedPlan === "yearly") productId = "shevalue_premium_yearly";
-
-      await requestSubscription({ sku: productId });
+      // Temporary: just navigate
+      Alert.alert("Coming Soon", "Purchases will be available shortly!");
     } catch (e: any) {
       console.log("Purchase error:", e);
-      if (e.code !== IAPErrorCode.E_USER_CANCELLED) {
-        Alert.alert("Error", e.message || "Purchase failed. Please try again.");
-      }
+      Alert.alert("Error", e.message || "Purchase failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -135,7 +97,7 @@ function PaywallScreen() {
       <TouchableOpacity
         style={[styles.button, loading && { opacity: 0.6 }]}
         onPress={handlePurchase}
-        disabled={loading || !connected}
+        disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
@@ -155,7 +117,8 @@ function PaywallScreen() {
   );
 }
 
-export default withIAPContext(PaywallScreen);
+// Removed withIAPContext wrapper temporarily
+export default PaywallScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000", padding: 24, justifyContent: "center" },
