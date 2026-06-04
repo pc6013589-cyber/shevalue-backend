@@ -52,7 +52,9 @@
         }
       ],
       "expo-speech-recognition",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-iap",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
