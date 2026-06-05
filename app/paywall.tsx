@@ -11,13 +11,11 @@ import {
 import { router } from "expo-router";
 
 // expo-iap imports commented out temporarily
-// import {
-//   useIAP,
-//   withIAPContext,
-//   requestSubscription,
-//   finishTransaction,
-//   IAPErrorCode,
-// } from "expo-iap";
+import {
+  useIAP,
+  requestSubscription,
+  withIAPContext,
+} from "expo-iap";
 
 const PRODUCT_IDS = [
   "shevalue_weekly",
@@ -48,7 +46,22 @@ function PaywallScreen() {
       // await requestSubscription({ sku: productId });
 
       // Temporary: just navigate
-      Alert.alert("Coming Soon", "Purchases will be available shortly!");
+    let productId = "";
+
+if (selectedPlan === "weekly") {
+  productId = "shevalue_weekly";
+}
+
+if (selectedPlan === "monthly") {
+  productId = "shevalue_monthly";
+}
+
+if (selectedPlan === "yearly") {
+  productId = "shevalue_premium_yearly";
+}
+
+console.log("Selected Product:", productId);
+Alert.alert("Test", productId);
     } catch (e: any) {
       console.log("Purchase error:", e);
       Alert.alert("Error", e.message || "Purchase failed. Please try again.");
