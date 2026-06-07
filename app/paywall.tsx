@@ -61,7 +61,9 @@ if (selectedPlan === "yearly") {
 }
 
 console.log("Selected Product:", productId);
-Alert.alert("Test", productId);
+await requestSubscription({
+  sku: productId,
+});
     } catch (e: any) {
       console.log("Purchase error:", e);
       Alert.alert("Error", e.message || "Purchase failed. Please try again.");
