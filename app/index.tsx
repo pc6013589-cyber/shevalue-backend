@@ -1,50 +1,39 @@
-import React, { useEffect } from "react";
-import { ActivityIndicator, SafeAreaView, StyleSheet } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
+import { useEffect } from "react";
 import { router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
   useEffect(() => {
-    const init = async () => {
+    console.log("🚀 Index screen mounted - navigating to tabs...");
+
+    // Force navigation after a short delay
+    const timer = setTimeout(() => {
       try {
-        const hasSeenOnboarding = await AsyncStorage.getItem("hasSeenOnboarding");
-        const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-
-        // First time user → onboarding
-        if (hasSeenOnboarding !== "true") {
-          router.replace("/onboarding");
-          return;
-        }
-
-        // Logged in → go to app
-        if (isLoggedIn === "true") {
-          router.replace("/paywall");
-          return;
-        }
-
-        // Not logged in → login screen
-        router.replace("/(auth)/login");
+        router.replace("/(tabs)");
       } catch (error) {
-        console.log("App state error:", error);
+        console.error("Navigation failed:", error);
+        // Fallback
         router.replace("/onboarding");
       }
-    };
+    }, 1500);
 
-    init();
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ 
+      flex: 1, 
+      backgroundColor: "#000", 
+      justifyContent: "center", 
+      alignItems: "center" 
+    }}>
       <ActivityIndicator size="large" color="#A4161A" />
-    </SafeAreaView>
+      <Text style={{ color: "#fff", marginTop: 20, fontSize: 18 }}>
+        Welcome to SheValue
+      </Text>
+      <Text style={{ color: "#666", marginTop: 10, fontSize: 14 }}>
+        Loading...
+      </Text>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});

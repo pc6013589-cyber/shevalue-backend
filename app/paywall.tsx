@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
-
-// expo-iap imports commented out temporarily
-import {
-  useIAP,
-  requestSubscription,
-  withIAPContext,
-} from "expo-iap";
+import { useIAP } from "expo-iap";
 
 const PRODUCT_IDS = [
   "shevalue_weekly",
@@ -27,43 +21,54 @@ function PaywallScreen() {
   const [selectedPlan, setSelectedPlan] = useState("weekly");
   const [loading, setLoading] = useState(false);
 
-  // IAP hooks commented out temporarily
-  // const {
-  //   connected,
-  //   currentPurchase,
-  //   currentPurchaseError,
-  //   getSubscriptions,
-  // } = useIAP();
+  const {
+    connected,
+    products,
+    fetchProducts,
+    requestPurchase,
+    finishTransaction,
+  } = useIAP({
+    onPurchaseSuccess: async (purchase) => {
+      console.log("Purchase successful:", purchase);
+      // TODO: Verify receipt on your backend here before finishing!
+      await finishTransaction(purchase);
+      Alert.alert("Success", "Purchase completed! Welcome to premium.");
+      // router.push("/home"); or update your auth state
+    },
+    onPurchaseError: (error) => {
+      console.error("Purchase error:", error);
+      Alert.alert("Error", error.message || "Purchase failed. Please try again.");
+    },
+  });
+
+  // Fetch products when connected
+  useEffect(() => {
+    if (connected) {
+      await fetchProducts({ skus: PRODUCT_IDS });
+    }
+  }, [connected, fetchProducts]);
 
   const handlePurchase = async () => {
     try {
       setLoading(true);
-      // IAP purchase logic commented out temporarily
-      // let productId = "";
-      // if (selectedPlan === "weekly") productId = "shevalue_weekly";
-      // if (selectedPlan === "monthly") productId = "shevalue_monthly";
-      // if (selectedPlan === "yearly") productId = "shevalue_premium_yearly";
-      // await requestSubscription({ sku: productId });
 
-      // Temporary: just navigate
-    let productId = "";
+      let productId = "";
+      if (selectedPlan === "weekly") productId = "shevalue_weekly";
+      else if (selectedPlan === "monthly") productId = "shevalue_monthly";
+      else if (selectedPlan === "yearly") productId = "shevalue_premium_yearly";
 
-if (selectedPlan === "weekly") {
-  productId = "shevalue_weekly";
-}
+      console.log("Selected Product:", productId);
 
-if (selectedPlan === "monthly") {
-  productId = "shevalue_monthly";
-}
+      if (!productId) {
+        throw new Error("Invalid plan selected");
+      }
 
-if (selectedPlan === "yearly") {
-  productId = "shevalue_premium_yearly";
-}
-
-console.log("Selected Product:", productId);
-await requestSubscription({
-  sku: productId,
-});
+      await requestPurchase({
+        request: {
+          apple: { sku: productId },
+          google: { skus: [productId] },
+        },
+      });
     } catch (e: any) {
       console.log("Purchase error:", e);
       Alert.alert("Error", e.message || "Purchase failed. Please try again.");
@@ -132,7 +137,6 @@ await requestSubscription({
   );
 }
 
-// Removed withIAPContext wrapper temporarily
 export default PaywallScreen;
 
 const styles = StyleSheet.create({
